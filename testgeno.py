@@ -5,6 +5,10 @@ import os
 import shutil
 import MySQLdb
 
+unitOrdinal = 1
+lessonOrdinal = 1
+objectiveOrdinal = 1
+
 # Open a connection to the MySQL database
 db = MySQLdb.connect(host="localhost", user="root", passwd="BUypNP5k", db="jsprogfinal");
 cur = db.cursor()
@@ -67,8 +71,8 @@ def checkTest(node):
   return True
 
 def checkTestProblem (problem):
-  # It doesn't really go here but this is the most convenient place to setup the database tables
-  global db, cur
+  # It doesn't really belong here but this is the most convenient place to setup the database tables
+  global db, cur, unitOrdinal, lessonOrdinal, objectiveOrdinal
   assert (problem and problem.name == "problem")
   problemid = getId(problem)
   assert(problemid)
@@ -88,18 +92,20 @@ def checkTestProblem (problem):
   if not checkTest(unit): 
     return False
   else:
-    # print ("Inserting unit " + unitid + " with SQL: " + "INSERT INTO units (id) VALUES ('" + unitid + "')")
-    cur.execute("INSERT IGNORE INTO units (id) VALUES ('" + unitid + "')")
+    if cur.execute("INSERT IGNORE INTO units (id, ordinal) VALUES ('" + unitid + "', " + str(unitOrdinal) + ")"):
+      unitOrdinal = unitOrdinal + 1;
   # Check if we're testing this lesson
   if not checkTest(lesson): 
     return False
   else:
-    cur.execute("INSERT IGNORE INTO lessons (id, unitid) VALUES ('" + lessonid + "', '" + unitid + "')")
+    if cur.execute("INSERT IGNORE INTO lessons (id, unitid, ordinal) VALUES ('" + lessonid + "', '" + unitid + "', " + str(lessonOrdinal) + ")"):
+      lessonOrdinal = lessonOrdinal + 1;
   # Check if we're testing this objective
   if not checkTest(objective): 
     return False
   else:
-    cur.execute("INSERT IGNORE INTO objectives (id, lessonid, unitid) VALUES ('" + objectiveid + "', '" + lessonid + "', '" + unitid + "')")
+    if cur.execute("INSERT IGNORE INTO objectives (id, lessonid, unitid, ordinal) VALUES ('" + objectiveid + "', '" + lessonid + "', '" + unitid + "', " + str(objectiveOrdinal) + ")"):
+      objectiveOrdinal = objectiveOrdinal + 1;
   # Check if we're testing this problem itself
   if not checkTest(problem): 
     return False
