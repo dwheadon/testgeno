@@ -13,11 +13,11 @@ objectiveOrdinal = 1
 db = MySQLdb.connect(host="localhost", user="root", passwd="BUypNP5k", db="jsprogfinal");
 cur = db.cursor()
 cur.execute("DROP TABLE IF EXISTS units")
-cur.execute("CREATE TABLE units (id VARCHAR(255), ordinal INT, PRIMARY KEY(id))")
+cur.execute("CREATE TABLE units (id VARCHAR(255), ordinal INT, title TEXT, PRIMARY KEY(id))")
 cur.execute("DROP TABLE IF EXISTS lessons")
-cur.execute("CREATE TABLE lessons (id VARCHAR(255), unitid VARCHAR(255), ordinal INT, PRIMARY KEY(id, unitid))")
+cur.execute("CREATE TABLE lessons (id VARCHAR(255), unitid VARCHAR(255), ordinal INT, title TEXT, PRIMARY KEY(id, unitid))")
 cur.execute("DROP TABLE IF EXISTS objectives")
-cur.execute("CREATE TABLE objectives (id VARCHAR(255), lessonid VARCHAR(255), unitid VARCHAR(255), ordinal INT, PRIMARY KEY(id, lessonid, unitid))")
+cur.execute("CREATE TABLE objectives (id VARCHAR(255), lessonid VARCHAR(255), unitid VARCHAR(255), ordinal INT, title TEXT, PRIMARY KEY(id, lessonid, unitid))")
 cur.execute("DROP TABLE IF EXISTS problems")
 cur.execute("CREATE TABLE problems (id VARCHAR(255), objectiveid VARCHAR(255), lessonid VARCHAR(255), unitid VARCHAR(255), PRIMARY KEY(id, objectiveid, lessonid, unitid))")
 cur.execute("DROP TABLE IF EXISTS questions")
@@ -79,32 +79,35 @@ def checkTestProblem (problem):
   objective = problem.parent.parent
   assert (objective and objective.name == "objective")
   objectiveid = getId(objective)
+  objectiveTitle = getAttribute("title", objective)
   assert(objectiveid)
   lesson = objective.parent.parent
   assert (lesson and lesson.name == "lesson")
   lessonid = getId(lesson)
+  lessonTitle = getAttribute("title", lesson)
   assert(lessonid)
   unit = lesson.parent
   assert (unit and unit.name == "unit")
   unitid = getId(unit)
+  unitTitle = getAttribute("title", unit)
   assert(unitid)
   # Check if we're testing this unit
   if not checkTest(unit): 
     return False
   else:
-    if cur.execute("INSERT IGNORE INTO units (id, ordinal) VALUES ('" + unitid + "', " + str(unitOrdinal) + ")"):
+    if cur.execute("INSERT IGNORE INTO units (id, ordinal, title) VALUES ('" + unitid + "', " + str(unitOrdinal) + ", %s)", unitTitle):
       unitOrdinal = unitOrdinal + 1;
   # Check if we're testing this lesson
   if not checkTest(lesson): 
     return False
   else:
-    if cur.execute("INSERT IGNORE INTO lessons (id, unitid, ordinal) VALUES ('" + lessonid + "', '" + unitid + "', " + str(lessonOrdinal) + ")"):
+    if cur.execute("INSERT IGNORE INTO lessons (id, unitid, ordinal, title) VALUES ('" + lessonid + "', '" + unitid + "', " + str(lessonOrdinal) + ", %s)", lessonTitle):
       lessonOrdinal = lessonOrdinal + 1;
   # Check if we're testing this objective
   if not checkTest(objective): 
     return False
   else:
-    if cur.execute("INSERT IGNORE INTO objectives (id, lessonid, unitid, ordinal) VALUES ('" + objectiveid + "', '" + lessonid + "', '" + unitid + "', " + str(objectiveOrdinal) + ")"):
+    if cur.execute("INSERT IGNORE INTO objectives (id, lessonid, unitid, ordinal, title) VALUES ('" + objectiveid + "', '" + lessonid + "', '" + unitid + "', " + str(objectiveOrdinal) + ", %s)", objectiveTitle):
       objectiveOrdinal = objectiveOrdinal + 1;
   # Check if we're testing this problem itself
   if not checkTest(problem): 
